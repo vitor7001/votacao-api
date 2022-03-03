@@ -81,4 +81,16 @@ public class PautaControllerTest {
                 .andExpect(jsonPath("descricao").value(pauta.getDescricao()));
 
     }
+
+    @Test
+    @DisplayName("Deve retornar resource not found quando não existir a pauta.")
+    public void buscarPautaNaoExistente() throws Exception{
+        BDDMockito.given(service.getById(Mockito.anyLong())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(PAUTA_API.concat("/" + 999))
+                .accept(MediaType.APPLICATION_JSON);
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
 }

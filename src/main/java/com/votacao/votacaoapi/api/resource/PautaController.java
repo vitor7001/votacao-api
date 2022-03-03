@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 
@@ -33,8 +34,10 @@ public class PautaController {
 
     @GetMapping("{id}")
     public PautaDTO buscar(@PathVariable Long id){
-        Pauta pauta = service.getById(id).get();
 
-        return modelMapper.map(pauta, PautaDTO.class);
+        return service.getById(id)
+                .map( pauta -> modelMapper.map(pauta, PautaDTO.class))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
     }
 }
