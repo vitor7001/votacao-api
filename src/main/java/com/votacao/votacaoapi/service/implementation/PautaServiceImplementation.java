@@ -5,6 +5,8 @@ import com.votacao.votacaoapi.model.repository.PautaRepository;
 import com.votacao.votacaoapi.service.PautaService;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class PautaServiceImplementation implements PautaService {
 
@@ -17,5 +19,10 @@ public class PautaServiceImplementation implements PautaService {
     @Override
     public Pauta save(Pauta any) {
         return repository.save(any);
+    }
+
+    @Override
+    public Optional<Pauta> getById(Long id) {
+        return Optional.empty();
     }
 }

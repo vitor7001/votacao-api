@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.Optional;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,7 +64,21 @@ public class PautaControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar erro na criação de uma pauta inválida.")
-    public void criarPautaInvalida() {
+    @DisplayName("Deve obter informações de uma pauta.")
+    public void buscarPauta() throws Exception{
+        Long id = 1L;
+
+        Pauta pauta = Pauta.builder().id(id).descricao("desc").dataFim("").build();
+        BDDMockito.given(service.getById(id)).willReturn(Optional.of(pauta));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(PAUTA_API.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("descricao").value(pauta.getDescricao()));
+
     }
 }
