@@ -93,4 +93,30 @@ public class PautaControllerTest {
         mvc.perform(request)
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("Deve deletar uma pauta.")
+    public void deletar() throws Exception{
+
+        BDDMockito.given(service.getById(Mockito.anyLong())).willReturn(Optional.of(Pauta.builder().id(5L).build()));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .delete(PAUTA_API.concat("/" + 5));
+
+        mvc.perform(request)
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Deve retornar not found quando não encontrar uma pauta para ser deletada.")
+    public void erroAoDeletar() throws Exception{
+
+        BDDMockito.given(service.getById(Mockito.anyLong())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .delete(PAUTA_API.concat("/" + 2));
+
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
 }

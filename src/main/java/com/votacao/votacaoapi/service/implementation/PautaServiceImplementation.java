@@ -25,4 +25,9 @@ public class PautaServiceImplementation implements PautaService {
     public Optional<Pauta> getById(Long id) {
         return Optional.empty();
     }
+
+    @Override
+    public void delete(Pauta pauta) {
+
+    }
 }

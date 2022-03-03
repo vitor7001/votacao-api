@@ -8,4 +8,6 @@ public interface PautaService {
     Pauta save(Pauta any);
 
     Optional<Pauta> getById(Long id);
+
+    void delete(Pauta pauta);
 }
