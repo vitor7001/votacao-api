@@ -60,7 +60,6 @@ public class PautaController {
         Pauta pauta = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         pauta.setDescricao(dto.getDescricao());
-        pauta.setDataFim(dto.getDataFim());
         pauta = service.update(pauta);
         return modelMapper.map(pauta, PautaDTO.class);
     }

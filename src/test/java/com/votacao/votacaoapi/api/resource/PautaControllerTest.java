@@ -43,8 +43,8 @@ public class PautaControllerTest {
     @DisplayName("Deve criar uma pauta.")
     public void criarPauta() throws Exception{
 
-        PautaDTO dto = PautaDTO.builder().descricao("Descrição").dataFim("").build();
-        Pauta pautaSalva = Pauta.builder().id(10L).descricao("Descrição").dataFim("").build();
+        PautaDTO dto = PautaDTO.builder().descricao("Descrição").build();
+        Pauta pautaSalva = Pauta.builder().id(10L).descricao("Descrição").build();
 
         BDDMockito.given(service.save(Mockito.any(Pauta.class))).willReturn(pautaSalva);
 
@@ -125,14 +125,14 @@ public class PautaControllerTest {
 
         Long id = 1L;
 
-        PautaDTO dto = PautaDTO.builder().descricao("Descrição").dataFim("06/07/2022 12:12:12").build();
+        PautaDTO dto = PautaDTO.builder().descricao("Descrição").build();
 
         String json = new ObjectMapper().writeValueAsString(dto);
 
-        Pauta pautaAtualizada = Pauta.builder().id(1L).descricao("Descrição ataulizada").dataFim("07/06/2022 10:10:10").build();
+        Pauta pautaAtualizada = Pauta.builder().id(1L).descricao("Descrição ataulizada").build();
         BDDMockito.given(service.getById(1L)).willReturn(Optional.of(pautaAtualizada));
 
-        Pauta pautaAposSerSalva = Pauta.builder().id(1L).descricao("Descrição").dataFim("06/07/2022 10:10:10").build();
+        Pauta pautaAposSerSalva = Pauta.builder().id(1L).descricao("Descrição").build();
         BDDMockito.given(service.update(pautaAtualizada)).willReturn(pautaAposSerSalva);
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
@@ -150,7 +150,7 @@ public class PautaControllerTest {
     @DisplayName("Deve retornar  erro ao atualizar uma pauta.")
     public void erroAoAtualizar() throws Exception{
 
-        PautaDTO dto = PautaDTO.builder().descricao("Descrição").dataFim("").build();
+        PautaDTO dto = PautaDTO.builder().descricao("Descrição").build();
 
         String json = new ObjectMapper().writeValueAsString(dto);
 
