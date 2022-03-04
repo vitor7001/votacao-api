@@ -19,7 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Optional;
 
@@ -115,6 +114,53 @@ public class PautaControllerTest {
 
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .delete(PAUTA_API.concat("/" + 2));
+
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Deve atualizar uma pauta.")
+    public void atualizar() throws Exception{
+
+        Long id = 1L;
+
+        PautaDTO dto = PautaDTO.builder().descricao("Descrição").dataFim("06/07/2022 12:12:12").build();
+
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        Pauta pautaAtualizada = Pauta.builder().id(1L).descricao("Descrição ataulizada").dataFim("07/06/2022 10:10:10").build();
+        BDDMockito.given(service.getById(1L)).willReturn(Optional.of(pautaAtualizada));
+
+        Pauta pautaAposSerSalva = Pauta.builder().id(1L).descricao("Descrição").dataFim("06/07/2022 10:10:10").build();
+        BDDMockito.given(service.update(pautaAtualizada)).willReturn(pautaAposSerSalva);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(PAUTA_API.concat("/" + 1))
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(id));
+    }
+
+    @Test
+    @DisplayName("Deve retornar  erro ao atualizar uma pauta.")
+    public void erroAoAtualizar() throws Exception{
+
+        PautaDTO dto = PautaDTO.builder().descricao("Descrição").dataFim("").build();
+
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        BDDMockito.given(service.getById(Mockito.anyLong())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(PAUTA_API.concat("/" + 1))
+                .content(json)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON);
 
         mvc.perform(request)
                 .andExpect(status().isNotFound());

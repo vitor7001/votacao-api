@@ -10,4 +10,6 @@ public interface PautaService {
     Optional<Pauta> getById(Long id);
 
     void delete(Pauta pauta);
+
+    Pauta update(Pauta pauta);
 }

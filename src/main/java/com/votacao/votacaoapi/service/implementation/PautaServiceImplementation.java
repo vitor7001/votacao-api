@@ -30,4 +30,9 @@ public class PautaServiceImplementation implements PautaService {
     public void delete(Pauta pauta) {
 
     }
+
+    @Override
+    public Pauta update(Pauta pauta) {
+        return null;
+    }
 }

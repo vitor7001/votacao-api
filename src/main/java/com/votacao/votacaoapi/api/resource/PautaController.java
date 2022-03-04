@@ -44,8 +44,18 @@ public class PautaController {
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable Long id){
-        System.out.println("id ==>> " + id);
         Pauta pauta = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         service.delete(pauta);
+    }
+
+    @PutMapping("{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public PautaDTO atualizar(@PathVariable Long id,@RequestBody @Valid PautaDTO dto){
+        Pauta pauta = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        pauta.setDescricao(dto.getDescricao());
+        pauta.setDataFim(dto.getDataFim());
+        pauta = service.update(pauta);
+        return modelMapper.map(pauta, PautaDTO.class);
     }
 }
