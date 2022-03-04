@@ -1,12 +1,18 @@
 package com.votacao.votacaoapi.api.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.votacao.votacaoapi.api.dto.PautaDTO;
+import com.votacao.votacaoapi.api.dto.StatusDTO;
 import com.votacao.votacaoapi.model.entity.Pauta;
 import com.votacao.votacaoapi.service.PautaService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
@@ -57,5 +63,33 @@ public class PautaController {
         pauta.setDataFim(dto.getDataFim());
         pauta = service.update(pauta);
         return modelMapper.map(pauta, PautaDTO.class);
+    }
+
+    @PostMapping(path = "/votar/{id}/{cpf}",  produces= MediaType.APPLICATION_JSON_VALUE)
+    public String votar(@PathVariable Long id, @PathVariable String cpf) throws Exception {
+        try {
+
+            RestTemplate instanciaRest = new RestTemplate();
+            StatusDTO statusCpf = instanciaRest.getForObject("https://user-info.herokuapp.com/users/".concat(cpf), StatusDTO.class);
+
+            String situacaoCpf = "";
+
+            if(statusCpf.getStatus().equals("UNABLE_TO_VOTE")){
+                situacaoCpf = "Este cpf não é permitido votar.";
+            }else if(statusCpf.getStatus().equals("ABLE_TO_VOTE")){
+                situacaoCpf =  "Seu voto foi computado.";
+            }else {
+                situacaoCpf ="Não foi possível verificar seu cpf no momento.";
+            }
+
+            StatusDTO situacao = StatusDTO.builder().status(situacaoCpf).build();
+            String json = new ObjectMapper().writeValueAsString(situacao);
+
+            return json;
+        }catch (HttpStatusCodeException httpError){
+            String json = new ObjectMapper().writeValueAsString("Houve um erro ao validar o cpf.");
+
+            return json;
+        }
     }
 }
