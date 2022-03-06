@@ -12,4 +12,6 @@ public interface VotoService {
     Optional<Voto> getById(Long id);
 
     List<Voto> votosDeUmaPauta(Long id);
+
+    Voto findByPautaIdAndAssociadoId(Long id, Long id1);
 }

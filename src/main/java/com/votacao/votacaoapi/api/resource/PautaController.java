@@ -23,6 +23,7 @@ import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -81,7 +82,6 @@ public class PautaController {
 
         pautaComDados.setVotosAFavor(this.contarVotos(votosDaPauta, true));
         pautaComDados.setVotosContra(this.contarVotos(votosDaPauta, false));
-
 
         return pautaComDados;
     }
@@ -146,6 +146,16 @@ public class PautaController {
             if(pauta.getDataFim() == null){
                 StatusDTO situacao = StatusDTO.builder().status("Está pauta não foi inicializada para ser votada.").build();
                 return new ObjectMapper().writeValueAsString(situacao);
+            }
+
+            Optional<Associado> associadoPorCpf = Optional.ofNullable(serviceAssociado.getByCpf(cpf));
+
+            if(associadoPorCpf.isPresent()){
+                Voto associadoJaVotou = serviceVoto.findByPautaIdAndAssociadoId(pauta.getId(), associadoPorCpf.get().getId());
+                if(associadoJaVotou.getId() != 0 ){
+                    StatusDTO situacao = StatusDTO.builder().status("Você já votou nesta pauta.").build();
+                    return new ObjectMapper().writeValueAsString(situacao);
+                }
             }
 
             Boolean dataExpirada = this.verificarDataExpirada(pauta.getDataFim());

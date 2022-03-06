@@ -24,4 +24,9 @@ public class AssociadoImplementation implements AssociadoService {
     public Optional<Associado> getById(Long id) {
         return repository.findById(id);
     }
+
+    @Override
+    public Associado getByCpf(String cpf) {
+        return repository.findByCpf(cpf);
+    }
 }

@@ -32,5 +32,10 @@ public class VotoServiceImplementation implements VotoService {
         return repository.findByPauta_Id(id);
     }
 
+    @Override
+    public Voto findByPautaIdAndAssociadoId(Long pautaId, Long associadoId) {
+        return repository.findByPauta_IdAndAssociado_Id(pautaId, associadoId);
+    }
+
 
 }

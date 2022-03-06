@@ -9,4 +9,5 @@ public interface AssociadoService {
 
     Optional<Associado> getById(Long id);
 
+    Associado getByCpf(String cpf);
 }
