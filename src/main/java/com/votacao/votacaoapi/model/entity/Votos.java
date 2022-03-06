@@ -14,16 +14,20 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table
-public class Pauta {
+public class Votos {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
-    private String descricao;
+    @OneToOne
+    @JoinColumn(name = "pauta", referencedColumnName = "id")
+    private Pauta pauta;
 
-    @Column
-    private String dataFim;
+    @OneToOne
+    @JoinColumn(name = "associado", referencedColumnName = "id")
+    private Associado associado;
+
+    private boolean votou;
 
 }

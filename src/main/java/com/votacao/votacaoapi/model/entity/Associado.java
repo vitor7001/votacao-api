@@ -14,16 +14,13 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table
-public class Pauta {
+public class Associado {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
-    private String descricao;
-
-    @Column
-    private String dataFim;
+    private String cpf;
 
 }
