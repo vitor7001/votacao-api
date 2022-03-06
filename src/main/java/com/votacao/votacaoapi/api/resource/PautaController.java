@@ -96,8 +96,14 @@ public class PautaController {
             return new ObjectMapper().writeValueAsString(situacao);
         }
 
-        pauta.setDataFim(dto.getDataFim());
-
+        if(dto.getDataFim() != null){
+            pauta.setDataFim(dto.getDataFim());
+        }else{
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            String dataAtualMaisUmMinuto = LocalDateTime.now().plusMinutes(1).format(formatter);
+            pauta.setDataFim(dataAtualMaisUmMinuto.toString());
+        }
+        
         service.update(pauta);
         StatusDTO situacao = StatusDTO.builder().status("Pauta inicializada com sucesso.").build();
         return new ObjectMapper().writeValueAsString(situacao);
