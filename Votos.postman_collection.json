@@ -1,0 +1,195 @@
+{
+	"info": {
+		"_postman_id": "1f0ba009-de1b-44ef-80a2-7bca32c2a590",
+		"name": "Votos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Pauta",
+			"item": [
+				{
+					"name": "Criar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"descricao\": \"sim\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}/api/pautas",
+							"host": [
+								"{{url_base}}"
+							],
+							"path": [
+								"api",
+								"pautas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar todas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url_base}}/api/pautas",
+							"host": [
+								"{{url_base}}"
+							],
+							"path": [
+								"api",
+								"pautas"
+							],
+							"query": [
+								{
+									"key": "descricao",
+									"value": "sim",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Iniciar",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dataFim\": \"20/03/2022 15:00:00\"\r\n}"
+						},
+						"url": {
+							"raw": "{{url_base}}/api/pautas/iniciar/1",
+							"host": [
+								"{{url_base}}"
+							],
+							"path": [
+								"api",
+								"pautas",
+								"iniciar",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar por id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url_base}}/api/pautas/1",
+							"host": [
+								"{{url_base}}"
+							],
+							"path": [
+								"api",
+								"pautas",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Votar em uma pauta",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"votou\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{url_base}}/api/pautas/votar/1/62289608068",
+					"host": [
+						"{{url_base}}"
+					],
+					"path": [
+						"api",
+						"pautas",
+						"votar",
+						"1",
+						"62289608068"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url_base",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
