@@ -1,7 +1,9 @@
 package com.votacao.votacaoapi.api.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.votacao.votacaoapi.api.dto.PautaDTO;
+import com.votacao.votacaoapi.api.dto.PautaDataFimDTO;
 import com.votacao.votacaoapi.api.dto.StatusDTO;
 import com.votacao.votacaoapi.model.entity.Pauta;
 import com.votacao.votacaoapi.service.PautaService;
@@ -18,6 +20,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,10 +31,12 @@ public class PautaController {
 
     private final PautaService service;
     private final ModelMapper modelMapper;
+    private final RestTemplate restTemplate;
 
-    public PautaController(PautaService service, ModelMapper modelMapper) {
+    public PautaController(PautaService service, ModelMapper modelMapper,RestTemplate restTemplate) {
         this.service = service;
         this.modelMapper = modelMapper;
+        this.restTemplate = restTemplate;
     }
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -80,24 +86,48 @@ public class PautaController {
         return modelMapper.map(pauta, PautaDTO.class);
     }
 
-    @PutMapping("/iniciar/{id}")
-    public PautaDTO iniciarPauta(@PathVariable Long id, @RequestBody PautaDTO dto){
-        Pauta pauta = service.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    @PutMapping(path="/iniciar/{id}",  produces= MediaType.APPLICATION_JSON_VALUE)
+    public String iniciarPauta(@PathVariable Long id, @RequestBody PautaDataFimDTO dto) throws Exception {
+        Pauta pauta = service.getById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        System.out.println("pauta " + pauta.getDescricao());
-        System.out.println("dto " + dto.getDataFim());
-        return PautaDTO.builder().build();
+        if(pauta.getDataFim() != null && !pauta.getDataFim().isEmpty()){
+            StatusDTO situacao = StatusDTO.builder().status("Está pauta já tem uma data de fim indicada.").build();
+            return new ObjectMapper().writeValueAsString(situacao);
+        }
+
+        pauta.setDataFim(dto.getDataFim());
+
+        service.update(pauta);
+        StatusDTO situacao = StatusDTO.builder().status("Pauta inicializada com sucesso.").build();
+        return new ObjectMapper().writeValueAsString(situacao);
     }
 
     @PostMapping(path = "/votar/{id}/{cpf}",  produces= MediaType.APPLICATION_JSON_VALUE)
     public String votar(@PathVariable Long id, @PathVariable String cpf) throws Exception {
         try {
 
-            RestTemplate instanciaRest = new RestTemplate();
-            StatusDTO statusCpf = instanciaRest.getForObject("https://user-info.herokuapp.com/users/".concat(cpf), StatusDTO.class);
+            Pauta pauta = service.getById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+            if(pauta.getDataFim() == null){
+                StatusDTO situacao = StatusDTO.builder().status("Está pauta não foi inicializada para ser votada.").build();
+                return new ObjectMapper().writeValueAsString(situacao);
+            }
+
+            LocalDateTime dataAtual = LocalDateTime.now();
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            LocalDateTime dataPauta = LocalDateTime.parse(pauta.getDataFim(), formatter);
+
+            if(!dataAtual.isBefore(dataPauta)){
+                StatusDTO situacao = StatusDTO.builder().status("A data de fim desta pauta já expirou.").build();
+                return new ObjectMapper().writeValueAsString(situacao);
+            }
+
+            StatusDTO statusCpf = restTemplate.getForObject("https://user-info.herokuapp.com/users/".concat(cpf), StatusDTO.class);
 
             String situacaoCpf;
-
             if(statusCpf.getStatus().equals("UNABLE_TO_VOTE")){
                 situacaoCpf = "Este cpf não é permitido votar.";
             }else if(statusCpf.getStatus().equals("ABLE_TO_VOTE")){
@@ -108,7 +138,8 @@ public class PautaController {
 
             StatusDTO situacao = StatusDTO.builder().status(situacaoCpf).build();
             return new ObjectMapper().writeValueAsString(situacao);
-        }catch (Exception httpError){
+        }catch (Exception ex){
+            System.out.println("EXECPTION " + ex.getStackTrace());
             return  new ObjectMapper().writeValueAsString("Houve um erro ao validar o cpf.");
         }
     }
