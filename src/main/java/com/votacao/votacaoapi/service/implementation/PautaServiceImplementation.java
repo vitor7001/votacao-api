@@ -27,17 +27,17 @@ public class PautaServiceImplementation implements PautaService {
 
     @Override
     public Optional<Pauta> getById(Long id) {
-        return Optional.empty();
+        return repository.findById(id);
     }
 
     @Override
     public void delete(Pauta pauta) {
-
+        repository.delete(pauta);
     }
 
     @Override
     public Pauta update(Pauta pauta) {
-        return null;
+        return repository.save(pauta);
     }
 
     @Override
