@@ -1,12 +1,13 @@
 package com.votacao.votacaoapi.api.resource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.votacao.votacaoapi.api.dto.PautaDTO;
-import com.votacao.votacaoapi.api.dto.PautaDataFimDTO;
-import com.votacao.votacaoapi.api.dto.StatusDTO;
+import com.votacao.votacaoapi.api.dto.*;
+import com.votacao.votacaoapi.model.entity.Associado;
 import com.votacao.votacaoapi.model.entity.Pauta;
+import com.votacao.votacaoapi.model.entity.Voto;
+import com.votacao.votacaoapi.service.AssociadoService;
 import com.votacao.votacaoapi.service.PautaService;
+import com.votacao.votacaoapi.service.VotoService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -15,7 +16,6 @@ import org.springframework.http.HttpStatus;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,15 +31,20 @@ import java.util.stream.Collectors;
 public class PautaController {
 
     private final PautaService service;
+    private final VotoService serviceVoto;
+    private final AssociadoService serviceAssociado;
     private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
     private final Random random;
     
-    public PautaController(PautaService service, ModelMapper modelMapper,RestTemplate restTemplate,Random random) {
+    public PautaController(PautaService service, ModelMapper modelMapper,RestTemplate restTemplate,
+                           Random random, VotoService serviceVoto, AssociadoService serviceAssociado) {
         this.service = service;
         this.modelMapper = modelMapper;
         this.restTemplate = restTemplate;
         this.random = random;
+        this.serviceVoto = serviceVoto;
+        this.serviceAssociado = serviceAssociado;
     }
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -64,12 +69,32 @@ public class PautaController {
     }
 
     @GetMapping("{id}")
-    public PautaDTO buscar(@PathVariable Long id){
+    public PautaComDadosDosVotosDTO buscar(@PathVariable Long id){
 
-        return service.getById(id)
-                .map( pauta -> modelMapper.map(pauta, PautaDTO.class))
+        PautaDTO pautaById = service.getById(id)
+                .map(pauta -> modelMapper.map(pauta, PautaDTO.class))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
+        List<Voto> votosDaPauta = serviceVoto.votosDeUmaPauta(pautaById.getId());
+
+        PautaComDadosDosVotosDTO pautaComDados = PautaComDadosDosVotosDTO.builder().build();
+
+        pautaComDados.setVotosAFavor(this.contarVotos(votosDaPauta, true));
+        pautaComDados.setVotosContra(this.contarVotos(votosDaPauta, false));
+
+
+        return pautaComDados;
+    }
+
+    private int contarVotos(List<Voto> votosDaPauta, boolean votosAFavor) {
+
+        int votos;
+        if(votosAFavor){
+            votos = (int) votosDaPauta.stream().filter(Voto::isVotou).count();
+        }else{
+            votos = (int) votosDaPauta.stream().filter(voto -> !voto.isVotou()).count();
+        }
+        return votos;
     }
 
     @DeleteMapping("{id}")
@@ -113,7 +138,7 @@ public class PautaController {
     }
 
     @PostMapping(path = "/votar/{id}/{cpf}",  produces= MediaType.APPLICATION_JSON_VALUE)
-    public String votar(@PathVariable Long id, @PathVariable String cpf) throws Exception {
+    public String votar(@PathVariable Long id, @PathVariable String cpf, @RequestBody VotoDTO votoDto) throws Exception {
 
             Pauta pauta = service.getById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -138,6 +163,13 @@ public class PautaController {
             }
 
 
+            Associado associado = Associado.builder().cpf(cpf).build();
+            associado = serviceAssociado.save(associado);
+
+            Voto voto = modelMapper.map(votoDto, Voto.class);
+            voto.setPauta(pauta);
+            voto.setAssociado(associado);
+            voto =serviceVoto.save(voto);
 
             StatusDTO situacao = StatusDTO.builder().status("Seu voto foi computado.").build();
             return new ObjectMapper().writeValueAsString(situacao);
