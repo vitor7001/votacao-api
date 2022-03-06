@@ -4,6 +4,7 @@ package com.votacao.votacaoapi.api.dto;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 @Data
 @Builder
@@ -17,4 +18,6 @@ public class PautaDTO {
     private String descricao;
     
     private String dataFim;
+
+    private List Voto;
 }
