@@ -23,6 +23,7 @@ import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @RequestMapping("/api/pautas")
@@ -32,11 +33,13 @@ public class PautaController {
     private final PautaService service;
     private final ModelMapper modelMapper;
     private final RestTemplate restTemplate;
-
-    public PautaController(PautaService service, ModelMapper modelMapper,RestTemplate restTemplate) {
+    private final Random random;
+    
+    public PautaController(PautaService service, ModelMapper modelMapper,RestTemplate restTemplate,Random random) {
         this.service = service;
         this.modelMapper = modelMapper;
         this.restTemplate = restTemplate;
+        this.random = random;
     }
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -103,7 +106,7 @@ public class PautaController {
             String dataAtualMaisUmMinuto = LocalDateTime.now().plusMinutes(1).format(formatter);
             pauta.setDataFim(dataAtualMaisUmMinuto.toString());
         }
-        
+
         service.update(pauta);
         StatusDTO situacao = StatusDTO.builder().status("Pauta inicializada com sucesso.").build();
         return new ObjectMapper().writeValueAsString(situacao);
@@ -111,7 +114,6 @@ public class PautaController {
 
     @PostMapping(path = "/votar/{id}/{cpf}",  produces= MediaType.APPLICATION_JSON_VALUE)
     public String votar(@PathVariable Long id, @PathVariable String cpf) throws Exception {
-        try {
 
             Pauta pauta = service.getById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -121,32 +123,61 @@ public class PautaController {
                 return new ObjectMapper().writeValueAsString(situacao);
             }
 
-            LocalDateTime dataAtual = LocalDateTime.now();
+            Boolean dataExpirada = this.verificarDataExpirada(pauta.getDataFim());
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-            LocalDateTime dataPauta = LocalDateTime.parse(pauta.getDataFim(), formatter);
-
-            if(!dataAtual.isBefore(dataPauta)){
+            if(dataExpirada){
                 StatusDTO situacao = StatusDTO.builder().status("A data de fim desta pauta já expirou.").build();
                 return new ObjectMapper().writeValueAsString(situacao);
             }
 
-            StatusDTO statusCpf = restTemplate.getForObject("https://user-info.herokuapp.com/users/".concat(cpf), StatusDTO.class);
+            Boolean situacaoCpf = this.verificarCpf(cpf);
 
-            String situacaoCpf;
-            if(statusCpf.getStatus().equals("UNABLE_TO_VOTE")){
-                situacaoCpf = "Este cpf não é permitido votar.";
-            }else if(statusCpf.getStatus().equals("ABLE_TO_VOTE")){
-                situacaoCpf =  "Seu voto foi computado.";
-            }else {
-                situacaoCpf ="Não foi possível verificar seu cpf no momento.";
+            if(!situacaoCpf){
+                StatusDTO situacao = StatusDTO.builder().status("Este cpf não é permitido votar").build();
+                return new ObjectMapper().writeValueAsString(situacao);
             }
 
-            StatusDTO situacao = StatusDTO.builder().status(situacaoCpf).build();
+
+
+            StatusDTO situacao = StatusDTO.builder().status("Seu voto foi computado.").build();
             return new ObjectMapper().writeValueAsString(situacao);
+    }
+
+    private Boolean verificarDataExpirada(String dataFim) {
+
+        LocalDateTime dataAtual = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        LocalDateTime dataPauta = LocalDateTime.parse(dataFim, formatter);
+
+        if(!dataAtual.isBefore(dataPauta)){
+            return true;
+        }
+        return false;
+    }
+
+    private Boolean verificarCpf(String cpf) {
+        try {
+            StatusDTO statusCpf = restTemplate.getForObject("https://user-info.herokuapp.com/users/".concat(cpf), StatusDTO.class);
+
+            Boolean cpfValido = false;
+            if (statusCpf.getStatus().equals("UNABLE_TO_VOTE")) {
+                cpfValido = false;
+            } else if (statusCpf.getStatus().equals("ABLE_TO_VOTE")) {
+                cpfValido = true;
+            }
+            
+            return cpfValido;
         }catch (Exception ex){
-            System.out.println("EXECPTION " + ex.getStackTrace());
-            return  new ObjectMapper().writeValueAsString("Houve um erro ao validar o cpf.");
+            // caso ocorra erro na requisição de verificação do cpf
+            // esta parte simula se o cpf é válido ou inválido apenas para fins didáticos para não ter que inserir
+            // uma função que faça essa verificação
+
+            int numero = random.nextInt(20);
+            
+            if(numero % 2 == 0 ){
+                return true;
+            }
+            return false;
         }
     }
 }
