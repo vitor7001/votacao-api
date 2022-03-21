@@ -1,5 +1,6 @@
 package com.votacao.votacaoapi.api.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.votacao.votacaoapi.api.dto.*;
 import com.votacao.votacaoapi.model.entity.Associado;
@@ -221,5 +222,20 @@ public class PautaController {
             }
             return false;
         }
+    }
+
+    @GetMapping(path="/users/{cpf}", produces= MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public String usuarioPodeVotar(@PathVariable String cpf) throws Exception {
+
+        Boolean situacaoCpf = this.verificarCpf(cpf);
+
+        if(!situacaoCpf){
+            StatusDTO situacao = StatusDTO.builder().status("UNABLE_TO_VOTE").build();
+            return new ObjectMapper().writeValueAsString(situacao);
+        }
+
+        StatusDTO situacao = StatusDTO.builder().status("ABLE_TO_VOTE").build();
+        return new ObjectMapper().writeValueAsString(situacao);
     }
 }
