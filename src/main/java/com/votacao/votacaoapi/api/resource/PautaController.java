@@ -3,6 +3,7 @@ package com.votacao.votacaoapi.api.resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.votacao.votacaoapi.api.dto.*;
+import com.votacao.votacaoapi.api.exception.ApiErros;
 import com.votacao.votacaoapi.model.entity.Associado;
 import com.votacao.votacaoapi.model.entity.Pauta;
 import com.votacao.votacaoapi.model.entity.Voto;
@@ -16,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.MediaType;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -237,5 +241,14 @@ public class PautaController {
 
         StatusDTO situacao = StatusDTO.builder().status("ABLE_TO_VOTE").build();
         return new ObjectMapper().writeValueAsString(situacao);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErros handleValidationException(MethodArgumentNotValidException exception){
+
+        BindingResult bindingResult = exception.getBindingResult();
+
+        return new ApiErros(bindingResult);
     }
 }
