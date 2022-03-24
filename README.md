@@ -2,7 +2,8 @@
 
 Repositório de uma API escrita em **Java** utilizando **Spring Boot** como framework e **H2** como banco de dados para permitir o CRUD de pautas e realizar o voto nas mesmas.
 
-
+É necessário ter o RabbitMQ rodando para o uso de filas, recomendo seguir algum tutorial como este: https://medium.com/xp-inc/rabbitmq-com-docker-conhecendo-o-admin-cc81f3f6ac3b
+Ou se já tiver algum configurado em sua máquina verifique as propriedades no application.properties para validar se estão de acordo com as suas configurações
 # Baixando o projeto
 
 Tenhas as seguintes ferramentas instaladas em sua máquina:
